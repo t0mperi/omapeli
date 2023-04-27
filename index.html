@@ -11,18 +11,18 @@
         import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs";
         
         // initialize kaboom context
-        const k = kaboom();
-        k.scene("main", () => {
+        kaboom();
+        
 
         // add a piece of text at position (120, 80)    
-        k.add([
+        add([
             text("hello"),
             pos(120, 80),
 
         ]);
 
-        });
-        k.start("main");
+        
+        
         
         
        
