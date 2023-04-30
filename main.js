@@ -2,9 +2,13 @@
 
 import kaboom from "kaboom"
 
-kaboom();
+kaboom({
+  background: [0, 0, 0],
+});
 
-const block_size = 5
+
+
+const block_size = 30
 
 const directions = 
 {
@@ -20,29 +24,31 @@ let run_action = false
 let snake_length = 4
 let snake_body = []
 
+
 //levels
 const map = addLevel([
   
-      "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x             x          x",
-      "x             x          x",
-      "x             x          x",
-      "x             x          x",
-      "x             x          x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "x                        x",
-      "xxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "x                                      x",
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 ], 
 {
       width: block_size,
@@ -76,20 +82,41 @@ function respawn_all(){
   run_action = false
   wait(0.5, function() {
     respawn_snake()
+    respawn_food()
     run_action = true
    })
 }
 
 respawn_all()
 
+function reset_game() {
+  respawn_all();
+  destroyAll("game-over-text");
+  destroyAll("restart-text");
+}
+
+function game_over() {
+  destroyAll();
+  add([
+    text("Try again!", 3),
+    pos(width() / 2, height() / 2),
+    origin("center"),
+    "game-over-text",
+  ]);
+
+  add([
+    text("Press R to restart", 3),
+    pos(width() / 2, height() / 2 + 40),
+    origin("center"),
+    "restart-text",
+  ]);
+
+  keyPress("r", () => {
+    reset_game();
+  });
+}
 
 
-
-
-
-
-
-//Snake move
 keyPress('up', () => {
     if (current_direction != directions.DOWN) {
         current_direction = directions.UP
@@ -112,8 +139,7 @@ keyPress('right', () => {
 })
 
 
-
-let move_delay = 0.2
+let move_delay = 1
 let timer = 0
 
 action(()=>{
@@ -145,25 +171,71 @@ action(()=>{
         move_y = 0;
         break;
 }
-
   
-  let snake_head = snake_body[snake_body.length -1]
+   let snake_head = snake_body[snake_body.length - 1]
+  
+  let new_pos = vec2(snake_head.pos.x + move_x, snake_head.pos.y + move_y)
 
-    snake_body.push(
-    add([
-    rect(block_size, block_size),
-    pos(snake_head.pos.x + move_x, snake_head.pos.y + move_y),
-    color(255, 0, 0),
-    area(),
-    'snake',
-                  
-])
-)
+  if (new_pos.x < 0 || new_pos.x >= width() || new_pos.y < 0 || new_pos.y >= height()) {
+    run_action = false
+    game_over()
+    
+  } else {
+    snake_body.push(add([
+      rect(block_size, block_size),
+      pos(new_pos),
+      color(255, 0, 0),
+      area(),
+      'snake',
+      
+    ]))
 
-  if(snake_body.length > snake_length) {
-  let tail = snake_body.shift()
-  destroy(tail)
-}
-
+    if (snake_body.length > snake_length) {
+      let tail = snake_body.shift()
+      destroy(tail)
+    }
+  } 
 
 })
+
+let food = null
+
+function respawn_food(){
+  let new_pos = rand(vec2(1, 1), vec2(15, 15))
+  new_pos.x = Math.floor(new_pos.x)
+  new_pos.y = Math.floor(new_pos.y)
+  new_pos = new_pos.scale(block_size)
+
+  if (food) {
+    destroy(food)
+  }
+  
+  food = add([
+  rect(block_size, block_size),
+    color(255, 255, 0),
+    pos(new_pos),
+    area(),
+    'food',
+  ])
+}
+
+  collides('snake', 'food', (s, f) => {
+  snake_length++
+  respawn_food()
+  
+})
+
+collides('snake', 'wall', () => {
+  run_action = false
+  game_over()
+  
+
+})
+
+collides('snake', 'snake', () => {
+  run_action = false
+  game_over()
+  
+
+})
+
