@@ -48,7 +48,7 @@ const map = addLevel([
       width: block_size,
       height: block_size,
       pos: vec2(0, 0),
-      'x': () => [rect(block_size, block_size), color(255, 255, 255), area(), 'wall']
+      'x': () => [rect(block_size, block_size), color(0, 255, 255), area(), 'wall']
 
 })
 
