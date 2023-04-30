@@ -4,10 +4,12 @@ import kaboom from "kaboom"
 
 kaboom({
   background: [0, 0, 0],
+  fullscreen: true,
+  clearColor: [0, 0, 0, 1]
 });
 
-
-
+const MAX_SPEED = 0.1
+const SPEED_INCREMENT = 0.02
 const block_size = 30
 
 const directions = 
@@ -18,14 +20,13 @@ const directions =
     RIGHT: 'right',
 }
 
-
 let current_direction = directions.DOWN
 let run_action = false
 let snake_length = 4
 let snake_body = []
 
 
-//levels
+//level
 const map = addLevel([
   
       "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -58,10 +59,11 @@ const map = addLevel([
 
 })
 
+//Snaken syntyminen
 function respawn_snake(){
     destroyAll('snake')
     snake_body = []
-    snake_length = 1
+    snake_length = 2
     
     for( let i = 1; i <= snake_length; i++)
     {
@@ -78,6 +80,7 @@ function respawn_snake(){
   current_direction = directions.RIGHT
 }
 
+// Pelin resetointi
 function respawn_all(){
   run_action = false
   wait(0.5, function() {
@@ -89,6 +92,8 @@ function respawn_all(){
 
 respawn_all()
 
+
+//Tekstit pelin loppumisessa, R näppäimellä uudestaan aloittaminen
 function reset_game() {
   respawn_all();
   destroyAll("game-over-text");
@@ -116,7 +121,7 @@ function game_over() {
   });
 }
 
-
+//Liikkuminen, kun näppäintä painetaan tarkistetaan ensin onko käärme jo menossa vastakkaiseen suuntaan
 keyPress('up', () => {
     if (current_direction != directions.DOWN) {
         current_direction = directions.UP
@@ -138,9 +143,10 @@ keyPress('right', () => {
     }
 })
 
-
-let move_delay = 1
+//liikkumisnopeus
+let move_delay = 0.7;
 let timer = 0
+
 
 action(()=>{
 
@@ -171,7 +177,8 @@ action(()=>{
         move_y = 0;
         break;
 }
-  
+  //Käärmeen sijainti
+
    let snake_head = snake_body[snake_body.length - 1]
   
   let new_pos = vec2(snake_head.pos.x + move_x, snake_head.pos.y + move_y)
@@ -189,7 +196,7 @@ action(()=>{
       'snake',
       
     ]))
-
+//Poistetaan hännästä ainakun mato liikkuu eteenpäin
     if (snake_body.length > snake_length) {
       let tail = snake_body.shift()
       destroy(tail)
@@ -198,8 +205,10 @@ action(()=>{
 
 })
 
-let food = null
 
+
+// random ruoka spawn
+let food = null
 function respawn_food(){
   let new_pos = rand(vec2(1, 1), vec2(15, 15))
   new_pos.x = Math.floor(new_pos.x)
@@ -208,8 +217,8 @@ function respawn_food(){
 
   if (food) {
     destroy(food)
+    
   }
-  
   food = add([
   rect(block_size, block_size),
     color(255, 255, 0),
@@ -218,13 +227,19 @@ function respawn_food(){
     'food',
   ])
 }
-
+ 
+//snake syö ruokaa se kasvaa +1 ja nopeus kasvaa ruokaa syödessä.
   collides('snake', 'food', (s, f) => {
   snake_length++
   respawn_food()
-  
+    
+   if (move_delay > MAX_SPEED) {
+    move_delay -= SPEED_INCREMENT
+  }
 })
 
+
+//snake osuu seinään peli päättyy
 collides('snake', 'wall', () => {
   run_action = false
   game_over()
@@ -232,10 +247,18 @@ collides('snake', 'wall', () => {
 
 })
 
+//snake osuu itseensä peli päättyy
 collides('snake', 'snake', () => {
   run_action = false
   game_over()
-  
 
 })
 
+//pause
+keyPress('space', () => {
+  run_action = false;
+});
+
+keyRelease('space', () => {
+  run_action = true;
+});
